@@ -1,0 +1,28 @@
+#!/bin/bash
+set -e
+
+bundle install
+
+vagrant up master --no-provision
+vagrant provision master
+
+# Lets open up the browser to the created chef server
+open "https://192.168.50.2/organizations/test"
+
+./seed_chef_server
+
+vagrant up client --no-provision
+vagrant provision client
+
+./backup_master
+
+vagrant up dr --no-provision
+vagrant provision dr
+
+# Lets open up the browser to the created chef server
+open "https://192.168.50.4/organizations/test"
+
+./restore_to_dr
+
+vagrant up client-new --no-provision
+vagrant provision client-new

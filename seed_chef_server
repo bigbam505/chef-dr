@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -e
+
+# Create a default databag
+bundle exec knife environment from file production.json -c knife.rb
+
+# Create a default databag
+bundle exec knife data bag create test -c knife.rb
+bundle exec knife data bag from file test item.json -c knife.rb
+
+# Upload a hello world cookbook
+bundle exec knife role from file hello.json -c knife.rb
+
+# Upload a hello world cookbook
+bundle exec knife cookbook upload hello-world -c knife.rb

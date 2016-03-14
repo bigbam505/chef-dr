@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -e
+
+bundle exec knife client delete test-validator --delete-validators -y -c knife-dr.rb
+bundle exec knife backup restore -D ./backups/master -y -c knife-dr.rb

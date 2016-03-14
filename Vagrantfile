@@ -75,27 +75,84 @@ Vagrant.configure(2) do |config|
     end
   end
 
-=begin
   # DR node to restore backups
   config.vm.define "dr" do |dr|
     dr.vm.box = "centos-7"
     dr.vm.box_url = "https://github.com/holms/vagrant-centos7-box/releases/download/7.1.1503.001/CentOS-7.1.1503-x86_64-netboot.box"
-    dr.vm.network "forwarded_port", guest: 80, host: 8081
     dr.vm.network "private_network", ip: "192.168.50.4"
     dr.vm.provision "shell", inline: <<-SHELL
      sudo yum update all
      sudo yum install -y wget
-     if [ ! -f /tmp/chef-server-core-12.1.0.rpm ]; then
-        echo "File not found Downloading!"
-        wget https://packagecloud.io/chef/stable/packages/el/7/chef-server-core-12.1.0-1.el7.x86_64.rpm/download -O /tmp/chef-server-core-12.1.0.rpm
+     if [ ! -f /tmp/chef/chef-server-core-12.4.1.rpm ]; then
+        echo "Chef Server File not found, Downloading!"
+        wget https://packagecloud.io/chef/stable/packages/el/7/chef-server-core-12.4.1-1.el7.x86_64.rpm/download -O /tmp/chef/chef-server-core-12.4.1.rpm &> /dev/null
      fi
-     if ! rpm -q chef-server-core-12.1.0
+     if ! rpm -q chef-server-core-12.4.1
       then
-        sudo rpm -Uvh /tmp/chef-server-core-12.1.0.rpm
+        sudo rpm -Uvh /tmp/chef/chef-server-core-12.4.1.rpm
+        echo "Chef Server installed now"
+     fi
+
+     if [ ! -f /tmp/chef/chef-manage-2.2.0.rpm ]; then
+        echo "opscode Manage File not found, Downloading!"
+        wget https://packagecloud.io/chef/stable/packages/el/7/chef-manage-2.2.0-1.el7.x86_64.rpm/download -O /tmp/chef/chef-manage-2.2.0.rpm &> /dev/null
+     fi
+     if ! rpm -q chef-manage-2.2.0
+      then
+        sudo rpm -Uvh /tmp/chef/chef-manage-2.2.0.rpm
+        echo "Opscode Manage installed now"
+     fi
+
+     if [ ! -f /tmp/chef/opscode-reporting-1.5.6.rpm ]; then
+        echo "opscode reporting File not found, Downloading!"
+        wget https://packagecloud.io/chef/stable/packages/el/7/opscode-reporting-1.5.6-1.el7.x86_64.rpm/download -O /tmp/chef/opscode-reporting-1.5.6.rpm &> /dev/null
+     fi
+     if ! rpm -q opscode-reporting-1.5.6
+      then
+        sudo rpm -Uvh /tmp/chef/opscode-reporting-1.5.6.rpm
+        echo "Opscode reporting installed now"
      fi
      sudo chef-server-ctl reconfigure
-     # sudo chef-server-ctl install opscode-manage
+     sudo chef-manage-ctl reconfigure
+     sudo opscode-reporting-ctl reconfigure
+
+     # Setup the user
+     if ! sudo chef-server-ctl user-show test &> /dev/null
+      then
+        echo "User not created, creating test user"
+        sudo chef-server-ctl user-create test test test test@example.com 'password' --filename /tmp/chef/dr/test.pem
+        sudo chef-server-ctl user-show test
+     fi
+
+     # Setup the organization
+     if ! sudo chef-server-ctl org-show test &> /dev/null
+      then
+        echo "Org not created, creating test organization"
+        sudo chef-server-ctl org-create test 'Test Org' --association_user test --filename /tmp/chef/dr/test-validator.pem
+        sudo chef-server-ctl org-show test
+     fi
+
+     # Disable Firewall
+     if sudo systemctl status firewalld &> /dev/null
+      then
+        echo "Firewall is running, disabling and stopping"
+        sudo systemctl disable firewalld
+        sudo systemctl stop firewalld
+     fi
     SHELL
   end
-=end
+
+  config.vm.define "client-new" do |client|
+    client.vm.box = "centos-7"
+    client.vm.box_url = "https://github.com/holms/vagrant-centos7-box/releases/download/7.1.1503.001/CentOS-7.1.1503-x86_64-netboot.box"
+
+    client.vm.provision "chef_client" do |chef|
+      chef.chef_server_url = "https://192.168.50.4/organizations/test"
+      chef.node_name = "sample-client-new"
+      chef.validation_key_path = "./chef/master/test-validator.pem"
+      chef.validation_client_name = "test-validator"
+      chef.environment = "production"
+      chef.add_role "hello"
+    end
+  end
 end
