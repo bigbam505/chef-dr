@@ -1,0 +1,7 @@
+{
+  "name": "hello",
+  "description": "Just a default role for fun",
+  "run_list": [
+    "recipe[hello-world]"
+  ]
+}

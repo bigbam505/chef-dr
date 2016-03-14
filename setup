@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e
+
+vagrant up master --no-provision
+vagrant provision master
+
+# Create a default databag
+bundle exec knife environment from file production.json
+
+# Create a default databag
+bundle exec knife data bag create test
+bundle exec knife data bag from file test item.json
+
+# Upload a hello world cookbook
+bundle exec knife role from file hello.json
+
+# Upload a hello world cookbook
+bundle exec knife cookbook upload hello-world
+
+vagrant up client --no-provision
+vagrant provision client

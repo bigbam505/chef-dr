@@ -1,2 +1,4 @@
 .vagrant/
 *.rpm
+*.pem
+checksums/
