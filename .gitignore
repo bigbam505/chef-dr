@@ -2,3 +2,4 @@
 *.rpm
 *.pem
 checksums/
+backups/master/
