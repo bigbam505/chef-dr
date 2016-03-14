@@ -12,5 +12,3 @@ cookbook_path            ["#{current_dir}/cookbooks"]
 ssl_verify_mode :verify_none
 
 knife[:secret_file] = "#{current_dir}/encrypted_data_bag_secret"
-knife[:vault_mode] = 'client'
-knife[:vault_admins] = [ 'bmontague' ]
