@@ -7,7 +7,7 @@ vagrant up master --no-provision
 vagrant provision master
 
 # Lets open up the browser to the created chef server
-open "https://192.168.50.2/organizations/test"
+open "https://$(vagrant hosts list | grep master | awk '{print $1}')/organizations/test"
 
 ./seed_chef_server
 
@@ -20,7 +20,7 @@ vagrant up dr --no-provision
 vagrant provision dr
 
 # Lets open up the browser to the created chef server
-open "https://192.168.50.4/organizations/test"
+open "https://$(vagrant hosts list | grep dr | awk '{print $1}')/organizations/test"
 
 ./restore_to_dr
 
