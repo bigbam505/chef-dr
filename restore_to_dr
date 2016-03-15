@@ -2,5 +2,14 @@
 
 set -e
 
+# Delete the validator because we want to import the one from our other server
 bundle exec knife client delete test-validator --delete-validators -y -c knife-dr.rb
+
+# Restore Backup
 bundle exec knife backup restore -D ./backups/master -y -c knife-dr.rb
+
+# Fix client permissions, will be messed up after the import
+bundle exec knife exec ./scripts/fix_chef_server_permissions.rb -c knife-dr.rb
+
+# Reindex all data
+vagrant ssh dr -c "sudo chef-server-ctl reindex test"
