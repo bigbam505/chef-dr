@@ -80,6 +80,10 @@ Vagrant.configure(2) do |config|
     dr.vm.box = "centos-7"
     dr.vm.box_url = "https://github.com/holms/vagrant-centos7-box/releases/download/7.1.1503.001/CentOS-7.1.1503-x86_64-netboot.box"
     dr.vm.network "private_network", ip: "192.168.50.4"
+    dr.vm.provider "virtualbox" do |vb|
+      vb.cpus = 2
+      vb.memory = "2048"
+    end
     dr.vm.provision "shell", inline: <<-SHELL
      sudo yum update all
      sudo yum install -y wget
