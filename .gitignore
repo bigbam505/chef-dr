@@ -3,3 +3,4 @@
 *.pem
 checksums/
 backups/master/
+*cvent*
